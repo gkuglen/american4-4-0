@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Historic Train AR Experience</title>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       DEPENDENCIES
+       A-Frame 1.5 + AR.js (location-based / GPS mode)
+  ═══════════════════════════════════════════════════════════ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aframe/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.min.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=IM+Fell+English&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --coal:    #1a1208;
+      --iron:    #2e2a22;
+      --rust:    #8b3a1a;
+      --ember:   #c9541e;
+      --brass:   #c8960c;
+      --cream:   #f5ead8;
+      --steam:   rgba(245,234,216,0.18);
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body:    'IM Fell English', Georgia, serif;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: var(--coal);
+      font-family: var(--font-body);
+      color: var(--cream);
+    }
+
+    /* ── Loading / Permission Screen ── */
+    #splash {
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--coal);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 0;
+      transition: opacity 0.8s ease;
+    }
+
+    #splash.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .splash-border {
+      border: 2px solid var(--brass);
+      padding: 2.5rem 2.8rem 2.2rem;
+      max-width: 340px; width: 90%;
+      text-align: center;
+      position: relative;
+    }
+
+    /* Corner ornaments */
+    .splash-border::before,
+    .splash-border::after {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px;
+      border-color: var(--ember);
+      border-style: solid;
+    }
+    .splash-border::before { top: -4px; left: -4px; border-width: 3px 0 0 3px; }
+    .splash-border::after  { bottom: -4px; right: -4px; border-width: 0 3px 3px 0; }
+
+    .splash-year {
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      letter-spacing: 0.35em;
+      color: var(--brass);
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+
+    .splash-title {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      line-height: 1.1;
+      color: var(--cream);
+      margin-bottom: 0.5rem;
+    }
+
+    .splash-sub {
+      font-size: 0.9rem;
+      color: rgba(245,234,216,0.6);
+      line-height: 1.6;
+      margin-bottom: 1.6rem;
+    }
+
+    .splash-divider {
+      width: 60px; height: 1px;
+      background: var(--brass);
+      margin: 0 auto 1.4rem;
+    }
+
+    .splash-instruction {
+      font-size: 0.82rem;
+      color: rgba(245,234,216,0.5);
+      line-height: 1.7;
+      margin-bottom: 1.8rem;
+    }
+
+    .splash-instruction span {
+      display: block;
+      color: rgba(245,234,216,0.8);
+    }
+
+    #start-btn {
+      background: var(--rust);
+      border: 1px solid var(--ember);
+      color: var(--cream);
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      letter-spacing: 0.1em;
+      padding: 0.75rem 2rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      width: 100%;
+    }
+    #start-btn:hover { background: var(--ember); }
+    #start-btn:active { transform: scale(0.97); }
+
+    /* ── Status HUD (shown during AR) ── */
+    #hud {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      z-index: 100;
+      pointer-events: none;
+      display: none;
+    }
+
+    .hud-bar {
+      background: linear-gradient(to top, rgba(26,18,8,0.85), transparent);
+      padding: 1.2rem 1.5rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .hud-left h2 {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      color: var(--cream);
+      margin-bottom: 0.2rem;
+    }
+
+    .hud-left p {
+      font-size: 0.75rem;
+      color: var(--brass);
+      letter-spacing: 0.08em;
+    }
+
+    .hud-status {
+      font-size: 0.7rem;
+      color: rgba(245,234,216,0.55);
+      text-align: right;
+      line-height: 1.7;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--ember);
+      margin-right: 5px;
+      animation: pulse-dot 1.8s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    /* ── Error overlay ── */
+    #error-msg {
+      position: fixed; inset: 0; z-index: 9998;
+      background: var(--coal);
+      display: none;
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 2rem; text-align: center;
+      gap: 1rem;
+    }
+    #error-msg h3 {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      color: var(--ember);
+    }
+    #error-msg p { font-size: 0.85rem; color: rgba(245,234,216,0.7); line-height: 1.7; }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SPLASH / PERMISSION SCREEN
+  ═══════════════════════════════════════════════════════════ -->
+  <div id="splash">
+    <div class="splash-border">
+      <p class="splash-year">Est. 1869 · AR Experience</p>
+      <h1 class="splash-title">The Ghost<br>Train</h1>
+      <div class="splash-divider"></div>
+      <p class="splash-sub">A historic locomotive, returned to the streets it once ruled.</p>
+      <p class="splash-instruction">
+        <span>Point your camera down the street.</span>
+        The train will appear and travel in the direction of the road.
+        <br><br>
+        This experience requires access to your <strong>camera</strong> and <strong>location</strong>.
+      </p>
+      <button id="start-btn" onclick="startAR()">Board the Experience</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       ERROR MESSAGE
+  ═══════════════════════════════════════════════════════════ -->
+  <div id="error-msg">
+    <h3>Permission Required</h3>
+    <p>Camera and location access are needed for this AR experience.<br>
+       Please allow both permissions and reload the page.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       HUD OVERLAY
+  ═══════════════════════════════════════════════════════════ -->
+  <div id="hud">
+    <div class="hud-bar">
+      <div class="hud-left">
+        <h2>The Ghost Train</h2>
+        <p>Historic AR · Main &amp; 1st</p>
+      </div>
+      <div class="hud-status">
+        <span><span class="dot"></span>Live AR</span><br>
+        <span id="gps-status">Acquiring GPS…</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       A-FRAME AR SCENE
+       (hidden until startAR() is called)
+  ═══════════════════════════════════════════════════════════ -->
+  <a-scene id="ar-scene"
+    style="display:none"
+    vr-mode-ui="enabled: false"
+    arjs="sourceType: webcam;
+          videoTexture: true;
+          debugUIEnabled: false;
+          trackingMethod: best"
+    renderer="antialias: true; alpha: true; logarithmicDepthBuffer: true"
+    loading-screen="enabled: false">
+
+    <!-- ── Assets ── -->
+    <a-assets timeout="15000">
+      <!--
+        ╔══════════════════════════════════════════════════════╗
+        ║  SWAP THIS SRC with your downloaded GLB file path   ║
+        ║  Example: src="./steam-locomotive.glb"              ║
+        ╚══════════════════════════════════════════════════════╝
+      -->
+      <a-asset-item id="train-model" src="./train.glb" response-type="arraybuffer"></a-asset-item>
+    </a-assets>
+
+    <!-- ═══════════════════════════════════════════════════
+         GPS ANCHOR
+         ╔═════════════════════════════════════════════════╗
+         ║  REPLACE latitude & longitude below with the    ║
+         ║  coordinates of your intersection.              ║
+         ║                                                  ║
+         ║  Find them at: maps.google.com                  ║
+         ║  Right-click a spot → "What's here?"            ║
+         ║                                                  ║
+         ║  Example (Union Square, SF):                    ║
+         ║  latitude: 37.7879                              ║
+         ║  longitude: -122.4075                           ║
+         ╚═════════════════════════════════════════════════╝
+    ═══════════════════════════════════════════════════════ -->
+    <a-entity
+      id="train-anchor"
+      gps-entity-place="latitude: 37.7879; longitude: -122.4075">
+
+      <!-- ── Train model wrapper ── -->
+      <a-entity id="train-wrapper"
+        position="0 0 0"
+        rotation="0 0 0"
+        scale="2.5 2.5 2.5">
+
+        <!--
+          ╔══════════════════════════════════════════════════════╗
+          ║  ROTATION — face the train down your street         ║
+          ║                                                      ║
+          ║  rotation="0 Y 0" — adjust Y to point train along  ║
+          ║  your street's compass heading:                     ║
+          ║    0   = North                                      ║
+          ║    90  = East                                       ║
+          ║    180 = South                                      ║
+          ║    270 = West                                       ║
+          ║                                                      ║
+          ║  Find your street's bearing on Google Maps:        ║
+          ║  Draw a line along the road → bearing in degrees   ║
+          ╚══════════════════════════════════════════════════════╝
+        -->
+        <a-entity id="train-model-entity"
+          gltf-model="#train-model"
+          rotation="0 90 0"
+          position="0 0 0"
+          shadow="cast: true; receive: false">
+        </a-entity>
+
+        <!-- ══════════════════════════════════════════════════
+             TRAIN MOVEMENT ANIMATION
+             Moves the train along the Z axis (forward/back).
+
+             ╔════════════════════════════════════════════════╗
+             ║  Adjust "to" to control travel distance.      ║
+             ║  from: 0 0 -30  = starts 30m behind you       ║
+             ║  to:   0 0  30  = ends 30m ahead of you       ║
+             ║                                                ║
+             ║  If the train goes the wrong way, swap the    ║
+             ║  from/to Z values (negate them).              ║
+             ║                                                ║
+             ║  dur: 12000 = 12 seconds per pass             ║
+             ╚════════════════════════════════════════════════╝
+        ════════════════════════════════════════════════════ -->
+        <a-animation
+          attribute="position"
+          from="0 0 -30"
+          to="0 0 30"
+          dur="12000"
+          easing="linear"
+          repeat="indefinite"
+          direction="normal">
+        </a-animation>
+
+      </a-entity><!-- /train-wrapper -->
+
+      <!-- ══════════════════════════════════════════════════
+           SMOKE / STEAM PARTICLES
+           Three puffs using animated spheres that rise,
+           fade, and scale up — no particle library needed.
+      ════════════════════════════════════════════════════ -->
+
+      <!-- Puff 1 -->
+      <a-sphere id="smoke1"
+        color="#c8c0b0"
+        opacity="0.0"
+        radius="0.25"
+        position="0 2.8 -30"
+        segments-height="6"
+        segments-width="6">
+        <!-- Rise upward -->
+        <a-animation attribute="position"
+          from="0 2.8 -30" to="0 5.5 -30"
+          dur="3000" easing="ease-out"
+          repeat="indefinite" direction="normal">
+        </a-animation>
+        <!-- Fade in then out -->
+        <a-animation attribute="opacity"
+          from="0" to="0.45"
+          dur="800" easing="ease-in"
+          repeat="indefinite" direction="alternate">
+        </a-animation>
+        <!-- Grow as it rises -->
+        <a-animation attribute="radius"
+          from="0.2" to="0.9"
+          dur="3000" easing="ease-out"
+          repeat="indefinite" direction="normal">
+        </a-animation>
+      </a-sphere>
+
+      <!-- Puff 2 (offset timing) -->
+      <a-sphere id="smoke2"
+        color="#b8b0a0"
+        opacity="0.0"
+        radius="0.2"
+        position="0 3.2 -29"
+        segments-height="6"
+        segments-width="6">
+        <a-animation attribute="position"
+          from="0 3.2 -29" to="0.4 6.0 -29"
+          dur="3800" easing="ease-out"
+          delay="1000"
+          repeat="indefinite" direction="normal">
+        </a-animation>
+        <a-animation attribute="opacity"
+          from="0" to="0.35"
+          dur="900" easing="ease-in"
+          delay="1000"
+          repeat="indefinite" direction="alternate">
+        </a-animation>
+        <a-animation attribute="radius"
+          from="0.15" to="0.75"
+          dur="3800" easing="ease-out"
+          delay="1000"
+          repeat="indefinite" direction="normal">
+        </a-animation>
+      </a-sphere>
+
+      <!-- Puff 3 (further offset) -->
+      <a-sphere id="smoke3"
+        color="#d0c8b8"
+        opacity="0.0"
+        radius="0.18"
+        position="-0.3 3.0 -29.5"
+        segments-height="6"
+        segments-width="6">
+        <a-animation attribute="position"
+          from="-0.3 3.0 -29.5" to="-0.6 5.8 -29.5"
+          dur="4200" easing="ease-out"
+          delay="2000"
+          repeat="indefinite" direction="normal">
+        </a-animation>
+        <a-animation attribute="opacity"
+          from="0" to="0.3"
+          dur="1000" easing="ease-in"
+          delay="2000"
+          repeat="indefinite" direction="alternate">
+        </a-animation>
+        <a-animation attribute="radius"
+          from="0.12" to="0.65"
+          dur="4200" easing="ease-out"
+          delay="2000"
+          repeat="indefinite" direction="normal">
+        </a-animation>
+      </a-sphere>
+
+    </a-entity><!-- /train-anchor (GPS) -->
+
+    <!-- ── Ambient + directional light (PBR-friendly) ── -->
+    <a-light type="ambient"  color="#ffe8c8" intensity="0.6"></a-light>
+    <a-light type="directional"
+      color="#fff5e0"
+      intensity="1.4"
+      position="3 8 5"
+      cast-shadow="true">
+    </a-light>
+    <!-- Warm fill from below (ground bounce) -->
+    <a-light type="point"
+      color="#c8640c"
+      intensity="0.4"
+      position="0 0.5 0">
+    </a-light>
+
+    <!-- ── GPS Camera ── -->
+    <a-camera
+      id="ar-camera"
+      gps-camera="minDistance: 1"
+      rotation-reader>
+    </a-camera>
+
+  </a-scene><!-- /a-scene -->
+
+
+  <!-- ═══════════════════════════════════════════════════════════
+       JAVASCRIPT
+  ═══════════════════════════════════════════════════════════ -->
+  <script>
+    // ── Start the AR experience after user taps the button ──
+    function startAR() {
+      const splash = document.getElementById('splash');
+      const scene  = document.getElementById('ar-scene');
+      const hud    = document.getElementById('hud');
+
+      // Check for required APIs
+      if (!navigator.geolocation) {
+        showError();
+        return;
+      }
+
+      // Request permissions then reveal scene
+      navigator.geolocation.getCurrentPosition(
+        function(pos) {
+          // Permissions granted — show AR
+          splash.classList.add('fade-out');
+          setTimeout(() => { splash.style.display = 'none'; }, 850);
+
+          scene.style.display = 'block';
+          hud.style.display   = 'block';
+
+          updateGPSStatus(pos);
+        },
+        function(err) {
+          console.warn('GPS error:', err);
+          // Still try to show the scene — GPS may arrive later
+          splash.classList.add('fade-out');
+          setTimeout(() => { splash.style.display = 'none'; }, 850);
+          scene.style.display = 'block';
+          hud.style.display   = 'block';
+          document.getElementById('gps-status').textContent = 'GPS unavailable';
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+
+    // ── Update GPS status readout ──
+    function updateGPSStatus(pos) {
+      const el = document.getElementById('gps-status');
+      if (!el || !pos) return;
+      const lat = pos.coords.latitude.toFixed(5);
+      const lng = pos.coords.longitude.toFixed(5);
+      el.textContent = lat + ', ' + lng;
+    }
+
+    // ── Watch position for live updates ──
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition(updateGPSStatus, null, {
+        enableHighAccuracy: true
+      });
+    }
+
+    function showError() {
+      document.getElementById('splash').style.display    = 'none';
+      document.getElementById('error-msg').style.display = 'flex';
+    }
+
+    // ── Sync smoke position to the train as it moves ──
+    // Once A-Frame is ready, keep smoke puffs relative to train
+    document.addEventListener('DOMContentLoaded', function() {
+      const scene = document.getElementById('ar-scene');
+      scene.addEventListener('loaded', function() {
+        const trainWrapper = document.getElementById('train-wrapper');
+        const smokeEls = ['smoke1','smoke2','smoke3'].map(id => document.getElementById(id));
+
+        // Offset for smokestacks (adjust Y/Z to match your model's chimney position)
+        // ╔══════════════════════════════════════════════════════╗
+        // ║  CHIMNEY OFFSET — tweak these if smoke appears      ║
+        // ║  in the wrong place relative to your model.         ║
+        // ║  x=0, y=2.8 (height), z=-1 (front of locomotive)   ║
+        // ╚══════════════════════════════════════════════════════╝
+        const chimneyOffset = { x: 0, y: 2.8, z: -1 };
+
+        // A-Frame tick approach: update smoke base positions each frame
+        // so they track the moving train anchor
+        const trainEntity = document.getElementById('train-model-entity');
+        if (trainEntity) {
+          trainEntity.addEventListener('componentchanged', function(evt) {
+            if (evt.detail.name !== 'position') return;
+            const p = trainEntity.getAttribute('position');
+            if (!p) return;
+            const baseZ = p.z + chimneyOffset.z;
+            const baseY = p.y + chimneyOffset.y;
+            smokeEls.forEach((s, i) => {
+              if (s) {
+                const xOff = [0, 0.4, -0.3][i];
+                // Update animation from/to to follow train
+                const anims = s.querySelectorAll('a-animation[attribute="position"]');
+                anims.forEach(a => {
+                  a.setAttribute('from', `${xOff} ${baseY} ${baseZ}`);
+                  a.setAttribute('to',   `${xOff + (i === 1 ? 0.4 : i === 2 ? -0.6 : 0)} ${baseY + 2.5} ${baseZ}`);
+                });
+              }
+            });
+          });
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

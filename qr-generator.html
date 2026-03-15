@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ghost Train — QR Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=IM+Fell+English&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --coal:  #1a1208;
+      --iron:  #2e2a22;
+      --rust:  #8b3a1a;
+      --ember: #c9541e;
+      --brass: #c8960c;
+      --cream: #f5ead8;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'IM Fell English', Georgia, serif;
+      background: var(--coal);
+      color: var(--cream);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      gap: 2rem;
+    }
+
+    .card {
+      border: 2px solid var(--brass);
+      padding: 2.2rem 2.4rem;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+    }
+    .card::before { content: ''; position: absolute; top: -4px; left: -4px; width: 16px; height: 16px; border: 3px solid var(--ember); border-right: none; border-bottom: none; }
+    .card::after  { content: ''; position: absolute; bottom: -4px; right: -4px; width: 16px; height: 16px; border: 3px solid var(--ember); border-left: none; border-top: none; }
+
+    h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.9rem;
+      color: var(--cream);
+      margin-bottom: 0.3rem;
+    }
+    .sub {
+      font-size: 0.8rem;
+      color: var(--brass);
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      margin-bottom: 1.6rem;
+    }
+    .divider {
+      width: 50px; height: 1px;
+      background: var(--brass);
+      margin: 0 auto 1.6rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      color: rgba(245,234,216,0.6);
+      margin-bottom: 0.5rem;
+      text-align: left;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: var(--iron);
+      border: 1px solid rgba(200,150,12,0.4);
+      color: var(--cream);
+      font-family: 'IM Fell English', Georgia, serif;
+      font-size: 0.9rem;
+      padding: 0.65rem 0.9rem;
+      margin-bottom: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus { border-color: var(--brass); }
+    input[type="text"]::placeholder { color: rgba(245,234,216,0.3); }
+
+    button {
+      background: var(--rust);
+      border: 1px solid var(--ember);
+      color: var(--cream);
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      padding: 0.7rem 1.8rem;
+      width: 100%;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background: var(--ember); }
+
+    /* QR output card */
+    #qr-output {
+      display: none;
+      border: 2px solid var(--brass);
+      padding: 2rem;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+    }
+    #qr-output::before { content: ''; position: absolute; top: -4px; left: -4px; width: 16px; height: 16px; border: 3px solid var(--ember); border-right: none; border-bottom: none; }
+    #qr-output::after  { content: ''; position: absolute; bottom: -4px; right: -4px; width: 16px; height: 16px; border: 3px solid var(--ember); border-left: none; border-top: none; }
+
+    #qr-output h2 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.1rem;
+      color: var(--cream);
+      margin-bottom: 0.4rem;
+    }
+
+    #qr-output .loc-label {
+      font-size: 0.75rem;
+      color: var(--brass);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 1.4rem;
+    }
+
+    #qr-canvas-wrap {
+      display: inline-block;
+      background: var(--cream);
+      padding: 16px;
+      margin-bottom: 1.2rem;
+    }
+
+    .qr-note {
+      font-size: 0.78rem;
+      color: rgba(245,234,216,0.5);
+      line-height: 1.7;
+      margin-bottom: 1.2rem;
+    }
+
+    #print-btn {
+      background: transparent;
+      border: 1px solid rgba(200,150,12,0.5);
+      color: var(--brass);
+      font-size: 0.85rem;
+      padding: 0.5rem 1.4rem;
+      width: auto;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    #print-btn:hover { border-color: var(--brass); color: var(--cream); background: transparent; }
+
+    @media print {
+      body { background: white; color: #111; }
+      .card { display: none; }
+      #qr-output { border-color: #333; display: block !important; color: #111; }
+      #qr-output h2, #qr-output .loc-label { color: #111; }
+      #print-btn { display: none; }
+      #qr-canvas-wrap { background: white; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>QR Generator</h1>
+    <p class="sub">Ghost Train · AR Experience</p>
+    <div class="divider"></div>
+
+    <label for="hosted-url">Your hosted AR page URL</label>
+    <input type="text" id="hosted-url"
+      placeholder="https://your-site.netlify.app/index.html"
+      value="https://your-site.netlify.app/index.html"/>
+
+    <label for="location-name">Location label (printed under QR)</label>
+    <input type="text" id="location-name"
+      placeholder="Main St &amp; 1st Ave"
+      value="Main St &amp; 1st Ave"/>
+
+    <button onclick="generateQR()">Generate QR Code</button>
+  </div>
+
+  <div id="qr-output">
+    <h2>The Ghost Train</h2>
+    <p class="loc-label" id="loc-display">Main St &amp; 1st Ave</p>
+    <div id="qr-canvas-wrap">
+      <div id="qr-code"></div>
+    </div>
+    <p class="qr-note">
+      Scan with your phone camera.<br>
+      No app required — opens directly in your browser.
+    </p>
+    <button id="print-btn" onclick="window.print()">Print this QR code</button>
+  </div>
+
+  <script>
+    let qrInstance = null;
+
+    function generateQR() {
+      const url      = document.getElementById('hosted-url').value.trim();
+      const location = document.getElementById('location-name').value.trim();
+
+      if (!url) {
+        alert('Please enter the URL of your hosted AR page.');
+        return;
+      }
+
+      document.getElementById('loc-display').textContent = location || 'AR Experience';
+
+      // Clear previous QR
+      const container = document.getElementById('qr-code');
+      container.innerHTML = '';
+
+      qrInstance = new QRCode(container, {
+        text:         url,
+        width:        220,
+        height:       220,
+        colorDark:    '#1a1208',
+        colorLight:   '#f5ead8',
+        correctLevel: QRCode.CorrectLevel.H  // High error correction — works even if partially obscured
+      });
+
+      document.getElementById('qr-output').style.display = 'block';
+      document.getElementById('qr-output').scrollIntoView({ behavior: 'smooth' });
+    }
+  </script>
+
+</body>
+</html>
