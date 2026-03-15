@@ -46,7 +46,6 @@
       top: 0; left: 0; right: 0; bottom: 0;
     }
 
-    /* ── Camera feed video ── */
     #arjs-video, .arjs-video, video {
       position: fixed !important;
       top: 0 !important; left: 0 !important;
@@ -56,7 +55,6 @@
       background: transparent !important;
     }
 
-    /* ── WebGL canvas ── */
     canvas {
       position: fixed !important;
       top: 0 !important; left: 0 !important;
@@ -73,9 +71,7 @@
       background: transparent !important;
     }
 
-    /* ══════════════════════════════════════════════
-       HUD TOGGLE BUTTON — top left
-    ══════════════════════════════════════════════ */
+    /* ── HUD toggle button ── */
     #hud-btn {
       position: fixed;
       top: calc(0.6rem + var(--sat));
@@ -100,9 +96,7 @@
     #hud-btn.visible { display: flex; }
     #hud-btn:active  { background: rgba(139,58,26,0.9); }
 
-    /* ══════════════════════════════════════════════
-       ADD TO HOME SCREEN HINT
-    ══════════════════════════════════════════════ */
+    /* ── Add to Home Screen hint ── */
     #hs-hint {
       position: fixed;
       top: calc(2.8rem + var(--sat));
@@ -119,65 +113,38 @@
       display: none;
       border-radius: 4px;
     }
-    #hs-hint.show { display: block; }
+    #hs-hint.show   { display: block; }
     #hs-hint strong { color: var(--brass); }
 
-    /* ══════════════════════════════════════════════
-       SCALE CONTROLS — top right
-    ══════════════════════════════════════════════ */
-    #scale-controls {
+    /* ── GPS status pill ── */
+    #gps-pill {
       position: fixed;
-      top: calc(0.5rem + var(--sat));
-      right: calc(0.5rem + var(--sar));
-      z-index: 500;
-      background: rgba(26,18,8,0.82);
-      padding: 0.6rem 0.8rem 0.7rem;
+      top: calc(0.6rem + var(--sat));
+      right: calc(0.6rem + var(--sar));
+      z-index: 600;
+      background: rgba(26,18,8,0.78);
+      border: 1px solid rgba(200,150,12,0.3);
+      color: rgba(245,234,216,0.6);
+      font-family: var(--font-body);
+      font-size: 0.6rem;
+      padding: 0.3rem 0.65rem;
+      border-radius: 99px;
       display: none;
-      flex-direction: column;
-      gap: 0.4rem;
-      min-width: 155px;
-      border: 1px solid rgba(200,150,12,0.2);
+      align-items: center;
+      gap: 0.3rem;
+      white-space: nowrap;
     }
-    #scale-controls.visible { display: flex; }
-    body.hud-hidden #scale-controls { display: none !important; }
-
-    .scale-title {
-      font-size: 0.58rem; color: rgba(245,234,216,0.4);
-      text-align: center; letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-    .scale-row { display: flex; align-items: center; gap: 0.5rem; }
-    .scale-label {
-      font-size: 0.62rem; color: var(--brass);
-      width: 10px; text-align: center;
-    }
-    .scale-row input[type=range] {
-      flex: 1; height: 3px;
-      -webkit-appearance: none;
-      background: rgba(200,150,12,0.35);
-      border-radius: 2px;
-    }
-    .scale-row input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 18px; height: 18px;
+    #gps-pill.visible { display: flex; }
+    .gps-dot {
+      width: 5px; height: 5px;
       border-radius: 50%;
       background: var(--ember);
+      animation: pulse-dot 2s ease-in-out infinite;
+      flex-shrink: 0;
     }
-    .scale-val {
-      font-size: 0.58rem; color: var(--cream);
-      width: 26px; text-align: right; font-family: monospace;
-    }
-    .scale-reset {
-      font-size: 0.58rem; color: var(--brass);
-      background: none; border: 1px solid rgba(200,150,12,0.3);
-      padding: 0.22rem 0.5rem; cursor: pointer;
-      -webkit-appearance: none; border-radius: 0;
-      margin-top: 0.15rem; text-align: center;
-    }
+    @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.2} }
 
-    /* ══════════════════════════════════════════════
-       HUD — bottom bar
-    ══════════════════════════════════════════════ */
+    /* ── HUD bottom bar ── */
     #hud {
       position: fixed; bottom: 0; left: 0; right: 0;
       z-index: 200; pointer-events: none;
@@ -188,7 +155,7 @@
     body.hud-hidden #hud { opacity: 0 !important; }
 
     .hud-bar {
-      background: linear-gradient(to top, rgba(26,18,8,0.9), transparent);
+      background: linear-gradient(to top, rgba(26,18,8,0.92), transparent);
       padding: 1.1rem 1.4rem 1.3rem;
       padding-left:  calc(1.4rem + var(--sal));
       padding-right: calc(1.4rem + var(--sar));
@@ -208,11 +175,8 @@
       border-radius: 50%; background: var(--ember); margin-right: 4px;
       animation: pulse-dot 1.8s ease-in-out infinite;
     }
-    @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.25} }
 
-    /* ══════════════════════════════════════════════
-       SPLASH
-    ══════════════════════════════════════════════ */
+    /* ── Splash ── */
     #splash {
       position: fixed; inset: 0; z-index: 9999;
       background: var(--coal);
@@ -286,12 +250,30 @@
 </head>
 <body>
 
+  <!--
+    ════════════════════════════════════════════════════════
+    GPS COORDINATES
+      Start:  37.7746, -122.2645
+      End:    37.7729, -122.2646
+      Bearing: 182.7° (south)
+      Distance between points: 189m
+      Train travels: 60m south from start point
+
+    TRAIN FACING
+      Street runs south → A-Frame rotation Y = 267°
+
+    SCALE (confirmed from device testing)
+      X=0.63  Y=1.56  Z=1.56
+      Vertical position Y=1.5
+    ════════════════════════════════════════════════════════
+  -->
   <a-scene
     id="ar-scene"
     vr-mode-ui="enabled: false"
     arjs="sourceType: webcam;
           videoTexture: false;
-          debugUIEnabled: false"
+          debugUIEnabled: false;
+          trackingMethod: best"
     renderer="antialias: true;
               alpha: true;
               preserveDrawingBuffer: true"
@@ -301,59 +283,116 @@
       <a-asset-item id="train-model" src="train.glb"></a-asset-item>
     </a-assets>
 
-    <!-- Small debug box — remove once train positioning confirmed -->
-    <a-box
-      id="debug-box"
-      color="#cc2200" opacity="0.75"
-      width="1" height="1" depth="1"
-      position="-4 0 -10">
-      <a-animation attribute="rotation"
-        from="0 0 0" to="0 360 0"
-        dur="4000" easing="linear" repeat="indefinite"/>
-    </a-box>
-
     <!--
-      ╔══════════════════════════════════════════════════╗
-      ║  Scale: X=0.63  Y=1.56  Z=1.56                 ║
-      ║  Position Y=1.5 raises train to mid-screen      ║
-      ║  Use sliders to fine-tune both live on device   ║
-      ╚══════════════════════════════════════════════════╝
+      GPS anchor at your start coordinate.
+      The train animates 60m south (negative Z in
+      A-Frame's coordinate space when facing south).
     -->
-    <a-entity id="train-wrapper" position="0 1.5 -15" scale="0.63 1.56 1.56">
-      <a-entity
-        id="train-model-entity"
-        gltf-model="#train-model"
-        rotation="0 90 0"
-        animation-mixer="clip: *; loop: repeat"
-        shadow="cast: true; receive: false">
-      </a-entity>
-      <a-animation
-        attribute="position"
-        from="-20 1.5 -15" to="20 1.5 -15"
-        dur="10000" easing="linear"
-        repeat="indefinite" direction="normal">
-      </a-animation>
-    </a-entity>
+    <a-entity
+      id="train-anchor"
+      gps-new-entity-place="latitude: 37.7746; longitude: -122.2645">
 
-    <!-- Steam puff -->
-    <a-sphere color="#c8c0b0" opacity="0" radius="0.4"
-      position="-20 3.5 -15" segments-height="6" segments-width="6">
-      <a-animation attribute="position"
-        from="-20 3.5 -15" to="20 3.5 -15"
-        dur="10000" easing="linear" repeat="indefinite"/>
-      <a-animation attribute="opacity"
-        from="0" to="0.55" dur="700"
-        easing="ease-in" repeat="indefinite" direction="alternate"/>
-      <a-animation attribute="radius"
-        from="0.3" to="1.2" dur="3000"
-        easing="ease-out" repeat="indefinite"/>
-    </a-sphere>
+      <!--
+        Train wrapper.
+        position Y=1.5 raises it to street level.
+        Rotation Y=267 faces it south down your street.
+        Animation travels 60m from start to end then loops.
+
+        from="0 1.5 0"   = at the anchor point
+        to="0 1.5 -60"   = 60m south (forward in A-Frame
+                           when rotation is ~270°)
+      -->
+      <a-entity
+        id="train-wrapper"
+        position="0 1.5 0"
+        scale="0.63 1.56 1.56"
+        rotation="0 267 0">
+
+        <a-entity
+          id="train-model-entity"
+          gltf-model="#train-model"
+          animation-mixer="clip: *; loop: repeat"
+          shadow="cast: true; receive: false">
+        </a-entity>
+
+        <!--
+          Travels 60m down the street over 18 seconds
+          then loops back to start.
+          Adjust dur for faster/slower speed:
+            10000 = fast (like a train rushing through)
+            18000 = moderate street speed
+            25000 = slow, dramatic pass
+        -->
+        <a-animation
+          attribute="position"
+          from="0 1.5 0"
+          to="0 1.5 -60"
+          dur="18000"
+          easing="linear"
+          repeat="indefinite"
+          direction="normal">
+        </a-animation>
+
+      </a-entity>
+
+      <!-- Steam puffs — travel with the train -->
+      <a-sphere color="#c8c0b0" opacity="0" radius="0.4"
+        position="0 4.5 0"
+        segments-height="6" segments-width="6">
+        <a-animation attribute="position"
+          from="0 4.5 0" to="0 4.5 -60"
+          dur="18000" easing="linear" repeat="indefinite"/>
+        <a-animation attribute="opacity"
+          from="0" to="0.55" dur="800"
+          easing="ease-in" repeat="indefinite" direction="alternate"/>
+        <a-animation attribute="radius"
+          from="0.3" to="1.3" dur="3200"
+          easing="ease-out" repeat="indefinite"/>
+      </a-sphere>
+
+      <a-sphere color="#b8b2a2" opacity="0" radius="0.3"
+        position="0.4 4.8 0"
+        segments-height="6" segments-width="6">
+        <a-animation attribute="position"
+          from="0.4 4.8 0" to="0.4 4.8 -60"
+          dur="18000" easing="linear" delay="1200" repeat="indefinite"/>
+        <a-animation attribute="opacity"
+          from="0" to="0.4" dur="900"
+          easing="ease-in" delay="1200"
+          repeat="indefinite" direction="alternate"/>
+        <a-animation attribute="radius"
+          from="0.2" to="0.9" dur="3800"
+          easing="ease-out" delay="1200" repeat="indefinite"/>
+      </a-sphere>
+
+      <a-sphere color="#d0c8b8" opacity="0" radius="0.25"
+        position="-0.3 4.6 0"
+        segments-height="6" segments-width="6">
+        <a-animation attribute="position"
+          from="-0.3 4.6 0" to="-0.3 4.6 -60"
+          dur="18000" easing="linear" delay="2400" repeat="indefinite"/>
+        <a-animation attribute="opacity"
+          from="0" to="0.32" dur="1000"
+          easing="ease-in" delay="2400"
+          repeat="indefinite" direction="alternate"/>
+        <a-animation attribute="radius"
+          from="0.18" to="0.75" dur="4200"
+          easing="ease-out" delay="2400" repeat="indefinite"/>
+      </a-sphere>
+
+    </a-entity>
 
     <a-light type="ambient"     color="#ffe8c8" intensity="0.7"></a-light>
     <a-light type="directional" color="#fff5e0" intensity="1.3"
       position="3 8 5"></a-light>
+    <a-light type="point" color="#c8640c" intensity="0.3"
+      position="0 2 0"></a-light>
 
-    <a-camera id="ar-camera"></a-camera>
+    <a-camera
+      id="ar-camera"
+      gps-new-camera="minDistance: 1"
+      rotation-reader>
+    </a-camera>
 
   </a-scene>
 
@@ -365,65 +404,42 @@
       <div class="splash-divider"></div>
       <p class="splash-sub">A historic locomotive, returned to the streets it once ruled.</p>
       <p class="splash-instruction">
-        Tap below then point your camera straight ahead —
-        the train appears about 15 metres in front of you.
-        Hold your phone in whichever orientation feels natural.
+        Stand near the intersection and point your camera
+        down the street. The train will appear and travel
+        60 metres south before looping back.
         <br><br>
-        Requires <strong>camera</strong> and <strong>location</strong> access.
+        Requires <strong>camera</strong> and
+        <strong>location</strong> access.
       </p>
       <p class="splash-tip">
-        <strong>True full screen:</strong> Tap Share in Safari
+        <strong>Full screen tip:</strong> Tap Share in Safari
         then <strong>Add to Home Screen</strong> — launching
         from your home screen removes all browser chrome.
       </p>
-      <button id="start-btn" onclick="startExperience()">Board the Experience</button>
+      <button id="start-btn" onclick="startExperience()">
+        Board the Experience
+      </button>
     </div>
   </div>
 
   <!-- Add to Home Screen hint -->
   <div id="hs-hint">
     <strong>True full screen on iPhone:</strong><br>
-    Safari toolbar cannot be hidden by web pages.<br><br>
-    Tap <strong>Share ↑</strong> → <strong>Add to Home Screen</strong>
-    → launch from your home screen icon for zero chrome.
+    Tap <strong>Share ↑</strong> →
+    <strong>Add to Home Screen</strong> →
+    launch from your home screen for zero chrome.
   </div>
 
-  <!-- HUD toggle button -->
+  <!-- HUD toggle -->
   <button id="hud-btn" onclick="toggleHUD()">
     <span id="hud-icon">◉</span>
     <span id="hud-label">Hide UI</span>
   </button>
 
-  <!-- Scale + position controls -->
-  <div id="scale-controls">
-    <p class="scale-title">Model scale</p>
-    <div class="scale-row">
-      <span class="scale-label">X</span>
-      <input type="range" id="sx" min="0.1" max="20" step="0.05" value="0.63"
-        oninput="updateScale()"/>
-      <span class="scale-val" id="sx-val">0.63</span>
-    </div>
-    <div class="scale-row">
-      <span class="scale-label">Y</span>
-      <input type="range" id="sy" min="0.1" max="20" step="0.05" value="1.56"
-        oninput="updateScale()"/>
-      <span class="scale-val" id="sy-val">1.56</span>
-    </div>
-    <div class="scale-row">
-      <span class="scale-label">Z</span>
-      <input type="range" id="sz" min="0.1" max="20" step="0.05" value="1.56"
-        oninput="updateScale()"/>
-      <span class="scale-val" id="sz-val">1.56</span>
-    </div>
-    <div style="height:1px;background:rgba(200,150,12,0.2);margin:0.3rem 0;"></div>
-    <p class="scale-title">Vertical position</p>
-    <div class="scale-row">
-      <span class="scale-label">Y</span>
-      <input type="range" id="py" min="-5" max="10" step="0.1" value="1.5"
-        oninput="updatePosition()"/>
-      <span class="scale-val" id="py-val">1.5</span>
-    </div>
-    <button class="scale-reset" onclick="resetAll()">Reset</button>
+  <!-- GPS accuracy pill — top right -->
+  <div id="gps-pill">
+    <span class="gps-dot"></span>
+    <span id="gps-text">Locating…</span>
   </div>
 
   <!-- HUD -->
@@ -431,33 +447,44 @@
     <div class="hud-bar">
       <div class="hud-left">
         <h2>The Ghost Train</h2>
-        <p>Test Mode · adjust sliders top-right</p>
+        <p>Historic AR · Traveling south · 60m</p>
       </div>
       <div class="hud-status">
         <span><span class="dot"></span>Live AR</span><br>
-        <span id="scale-readout">X=0.63 Y=1.56 Z=1.56</span>
+        <span id="gps-status">Acquiring GPS…</span>
       </div>
     </div>
   </div>
 
   <script>
-    var arStarted  = false;
     var hudVisible = true;
 
     function startExperience() {
+      if (!navigator.geolocation) {
+        alert('Location services not available.');
+        return;
+      }
       navigator.geolocation.getCurrentPosition(
-        function() { launchAR(); },
-        function() { launchAR(); },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        function(pos) { launchAR(pos); },
+        function(err) {
+          console.warn('GPS:', err.code, err.message);
+          launchAR(null);
+        },
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
       );
     }
 
-    function launchAR() {
-      arStarted = true;
+    function launchAR(pos) {
       dismissSplash();
       document.getElementById('hud').classList.add('visible');
-      document.getElementById('scale-controls').classList.add('visible');
       document.getElementById('hud-btn').classList.add('visible');
+      document.getElementById('gps-pill').classList.add('visible');
+      if (pos) updateGPS(pos);
+
+      // Watch position continuously for live accuracy readout
+      navigator.geolocation.watchPosition(updateGPS, null, {
+        enableHighAccuracy: true, maximumAge: 2000
+      });
     }
 
     function dismissSplash() {
@@ -466,22 +493,35 @@
       setTimeout(function() { s.classList.add('gone'); }, 950);
     }
 
-    // ── HUD toggle ──
+    function updateGPS(pos) {
+      if (!pos) return;
+      var acc = Math.round(pos.coords.accuracy);
+      var lat = pos.coords.latitude.toFixed(4);
+      var lng = pos.coords.longitude.toFixed(4);
+      document.getElementById('gps-text').textContent =
+        '±' + acc + 'm';
+      document.getElementById('gps-status').textContent =
+        lat + ', ' + lng;
+    }
+
     function toggleHUD() {
       hudVisible = !hudVisible;
       var label = document.getElementById('hud-label');
       var icon  = document.getElementById('hud-icon');
       var hint  = document.getElementById('hs-hint');
+      var pill  = document.getElementById('gps-pill');
 
       if (hudVisible) {
         document.body.classList.remove('hud-hidden');
         label.textContent = 'Hide UI';
         icon.textContent  = '◉';
+        pill.classList.add('visible');
         hint.classList.remove('show');
       } else {
         document.body.classList.add('hud-hidden');
         label.textContent = 'Show UI';
         icon.textContent  = '○';
+        pill.classList.remove('visible');
         hint.classList.add('show');
         setTimeout(function() {
           hint.classList.remove('show');
@@ -489,48 +529,21 @@
       }
     }
 
-    // ── Scale ──
-    function updateScale() {
-      var sx = parseFloat(document.getElementById('sx').value);
-      var sy = parseFloat(document.getElementById('sy').value);
-      var sz = parseFloat(document.getElementById('sz').value);
-      document.getElementById('sx-val').textContent = sx.toFixed(2);
-      document.getElementById('sy-val').textContent = sy.toFixed(2);
-      document.getElementById('sz-val').textContent = sz.toFixed(2);
-      var w = document.getElementById('train-wrapper');
-      if (w) w.setAttribute('scale', sx + ' ' + sy + ' ' + sz);
-      document.getElementById('scale-readout').textContent =
-        'X=' + sx.toFixed(2) + ' Y=' + sy.toFixed(2) + ' Z=' + sz.toFixed(2);
-    }
+    // Recalculate canvas on orientation change
+    window.addEventListener('orientationchange', function() {
+      setTimeout(function() {
+        var scene = document.getElementById('ar-scene');
+        if (scene && scene.renderer) {
+          scene.renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+      }, 300);
+    });
 
-    // ── Vertical position ──
-    function updatePosition() {
-      var py = parseFloat(document.getElementById('py').value);
-      document.getElementById('py-val').textContent = py.toFixed(1);
-      var w = document.getElementById('train-wrapper');
-      if (w) w.setAttribute('position', '0 ' + py + ' -15');
-    }
-
-    function resetAll() {
-      document.getElementById('sx').value = 0.63;
-      document.getElementById('sy').value = 1.56;
-      document.getElementById('sz').value = 1.56;
-      document.getElementById('py').value = 1.5;
-      updateScale();
-      updatePosition();
-    }
-
-    // ── Resize handler — recalculates canvas on rotation ──
-    function onResize() {
+    window.addEventListener('resize', function() {
       var scene = document.getElementById('ar-scene');
       if (scene && scene.renderer) {
         scene.renderer.setSize(window.innerWidth, window.innerHeight);
       }
-    }
-
-    window.addEventListener('resize', onResize);
-    window.addEventListener('orientationchange', function() {
-      setTimeout(onResize, 300);
     });
   </script>
 
