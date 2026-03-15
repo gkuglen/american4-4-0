@@ -46,13 +46,14 @@
       top: 0; left: 0; right: 0; bottom: 0;
     }
 
-    /* ── Camera feed ── */
+    /* ── Camera feed video ── */
     #arjs-video, .arjs-video, video {
       position: fixed !important;
       top: 0 !important; left: 0 !important;
       width: 100% !important; height: 100% !important;
       object-fit: cover !important;
       z-index: 0 !important;
+      background: transparent !important;
     }
 
     /* ── WebGL canvas ── */
@@ -69,16 +70,13 @@
       top: 0; left: 0;
       width: 100% !important; height: 100% !important;
       z-index: 1;
+      background: transparent !important;
     }
 
-    /* ══════════════════════════════════════════════════
-       FULLSCREEN TOGGLE BUTTON
-       Always visible — small pill in top-left corner.
-       Tapping it requests the Fullscreen API (hides
-       Safari chrome entirely) or exits fullscreen.
-       Also toggles HUD visibility.
-    ══════════════════════════════════════════════════ */
-    #fs-btn {
+    /* ══════════════════════════════════════════════
+       HUD TOGGLE BUTTON — top left
+    ══════════════════════════════════════════════ */
+    #hud-btn {
       position: fixed;
       top: calc(0.6rem + var(--sat));
       left: calc(0.6rem + var(--sal));
@@ -89,29 +87,44 @@
       font-family: var(--font-body);
       font-size: 0.65rem;
       letter-spacing: 0.08em;
-      padding: 0.35rem 0.7rem;
+      padding: 0.35rem 0.75rem;
       cursor: pointer;
       -webkit-appearance: none;
       border-radius: 99px;
-      display: none; /* shown after AR starts */
+      display: none;
       align-items: center;
       gap: 0.35rem;
       min-height: 32px;
       white-space: nowrap;
     }
-    #fs-btn.visible { display: flex; }
-    #fs-btn:active  { background: rgba(139,58,26,0.9); }
+    #hud-btn.visible { display: flex; }
+    #hud-btn:active  { background: rgba(139,58,26,0.9); }
 
-    /* Icon inside button — rotates between expand/collapse */
-    #fs-icon {
-      font-size: 0.75rem;
-      transition: transform 0.3s ease;
+    /* ══════════════════════════════════════════════
+       ADD TO HOME SCREEN HINT
+    ══════════════════════════════════════════════ */
+    #hs-hint {
+      position: fixed;
+      top: calc(2.8rem + var(--sat));
+      left: calc(0.6rem + var(--sal));
+      z-index: 600;
+      background: rgba(26,18,8,0.92);
+      border: 1px solid rgba(200,150,12,0.3);
+      color: var(--cream);
+      font-family: var(--font-body);
+      font-size: 0.65rem;
+      line-height: 1.7;
+      padding: 0.6rem 0.8rem;
+      max-width: 220px;
+      display: none;
+      border-radius: 4px;
     }
-    body.is-fullscreen #fs-icon { transform: rotate(45deg); }
+    #hs-hint.show { display: block; }
+    #hs-hint strong { color: var(--brass); }
 
-    /* ══════════════════════════════════════════════════
+    /* ══════════════════════════════════════════════
        SCALE CONTROLS — top right
-    ══════════════════════════════════════════════════ */
+    ══════════════════════════════════════════════ */
     #scale-controls {
       position: fixed;
       top: calc(0.5rem + var(--sat));
@@ -126,18 +139,14 @@
       border: 1px solid rgba(200,150,12,0.2);
     }
     #scale-controls.visible { display: flex; }
-
-    /* Auto-hide scale controls in fullscreen */
-    body.is-fullscreen #scale-controls { display: none !important; }
+    body.hud-hidden #scale-controls { display: none !important; }
 
     .scale-title {
       font-size: 0.58rem; color: rgba(245,234,216,0.4);
       text-align: center; letter-spacing: 0.12em;
-      font-family: var(--font-body); text-transform: uppercase;
+      text-transform: uppercase;
     }
-    .scale-row {
-      display: flex; align-items: center; gap: 0.5rem;
-    }
+    .scale-row { display: flex; align-items: center; gap: 0.5rem; }
     .scale-label {
       font-size: 0.62rem; color: var(--brass);
       width: 10px; text-align: center;
@@ -156,49 +165,27 @@
     }
     .scale-val {
       font-size: 0.58rem; color: var(--cream);
-      width: 26px; text-align: right;
-      font-family: monospace;
+      width: 26px; text-align: right; font-family: monospace;
     }
     .scale-reset {
       font-size: 0.58rem; color: var(--brass);
       background: none; border: 1px solid rgba(200,150,12,0.3);
       padding: 0.22rem 0.5rem; cursor: pointer;
-      font-family: var(--font-body);
       -webkit-appearance: none; border-radius: 0;
       margin-top: 0.15rem; text-align: center;
     }
 
-    /* ══════════════════════════════════════════════════
-       DEBUG BANNER — top centre
-       Hidden in fullscreen mode
-    ══════════════════════════════════════════════════ */
-    #debug-banner {
-      position: fixed; top: 0; left: 0; right: 0;
-      z-index: 400; pointer-events: none;
-      background: rgba(139,58,26,0.85);
-      color: var(--cream); font-size: 0.62rem;
-      font-family: var(--font-body);
-      padding: 0.4rem 1rem;
-      padding-top: calc(0.4rem + var(--sat));
-      text-align: center; display: none;
-    }
-    #debug-banner.visible          { display: block; }
-    body.is-fullscreen #debug-banner { display: none !important; }
-
-    /* ══════════════════════════════════════════════════
+    /* ══════════════════════════════════════════════
        HUD — bottom bar
-       Toggled OFF automatically in fullscreen mode,
-       ON when browser chrome is visible.
-    ══════════════════════════════════════════════════ */
+    ══════════════════════════════════════════════ */
     #hud {
       position: fixed; bottom: 0; left: 0; right: 0;
       z-index: 200; pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.5s ease;
+      opacity: 0; transition: opacity 0.5s ease;
       padding-bottom: var(--sab);
     }
-    #hud.visible                { opacity: 1; }
-    body.is-fullscreen #hud     { opacity: 0 !important; }
+    #hud.visible         { opacity: 1; }
+    body.hud-hidden #hud { opacity: 0 !important; }
 
     .hud-bar {
       background: linear-gradient(to top, rgba(26,18,8,0.9), transparent);
@@ -223,9 +210,9 @@
     }
     @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.25} }
 
-    /* ══════════════════════════════════════════════════
+    /* ══════════════════════════════════════════════
        SPLASH
-    ══════════════════════════════════════════════════ */
+    ══════════════════════════════════════════════ */
     #splash {
       position: fixed; inset: 0; z-index: 9999;
       background: var(--coal);
@@ -272,7 +259,7 @@
     }
     .splash-sub {
       font-size: 0.84rem; color: rgba(245,234,216,0.6);
-      line-height: 1.6; margin-bottom: 1.2rem;
+      line-height: 1.6; margin-bottom: 1.1rem;
     }
     .splash-instruction {
       font-size: 0.76rem; color: rgba(245,234,216,0.5);
@@ -280,12 +267,12 @@
     }
     .splash-instruction strong { color: rgba(245,234,216,0.85); }
     .splash-tip {
-      font-size: 0.68rem; color: rgba(200,150,12,0.65);
-      line-height: 1.6; margin-bottom: 1.3rem;
+      font-size: 0.68rem; color: rgba(200,150,12,0.7);
+      line-height: 1.65; margin-bottom: 1.2rem;
       border-top: 1px solid rgba(200,150,12,0.2);
-      padding-top: 0.8rem;
+      padding-top: 0.75rem;
     }
-    .splash-tip strong { color: rgba(200,150,12,0.9); }
+    .splash-tip strong { color: rgba(200,150,12,0.95); }
 
     #start-btn {
       background: var(--rust); border: 1px solid var(--ember);
@@ -295,40 +282,6 @@
       -webkit-appearance: none; border-radius: 0; min-height: 48px;
     }
     #start-btn:active { background: var(--ember); }
-
-    /* ══════════════════════════════════════════════════
-       ORIENTATION WARNING
-    ══════════════════════════════════════════════════ */
-    #orient-warn {
-      position: fixed; inset: 0; z-index: 8000;
-      background: rgba(26,18,8,0.95);
-      display: none; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 1rem; text-align: center; padding: 2rem;
-    }
-    #orient-warn.show { display: flex; }
-    #orient-warn p {
-      font-family: var(--font-display);
-      font-size: 1rem; color: var(--cream); line-height: 1.5;
-    }
-    #orient-warn small {
-      font-size: 0.72rem; color: rgba(245,234,216,0.45);
-    }
-    .rotate-icon {
-      width: 44px; height: 44px;
-      border: 2px solid var(--brass); border-radius: 6px;
-      position: relative;
-      animation: rotate-hint 2.2s ease-in-out infinite;
-    }
-    .rotate-icon::after {
-      content: '↻'; position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.3rem; color: var(--brass);
-    }
-    @keyframes rotate-hint {
-      0%,100% { transform: rotate(0deg); }
-      40%,60%  { transform: rotate(90deg); }
-    }
   </style>
 </head>
 <body>
@@ -348,29 +301,25 @@
       <a-asset-item id="train-model" src="train.glb"></a-asset-item>
     </a-assets>
 
-    <!-- Debug red box — 10m ahead, confirm rendering works -->
+    <!-- Small debug box — remove once train positioning confirmed -->
     <a-box
       id="debug-box"
-      color="#cc2200" opacity="0.85"
-      width="2" height="2" depth="2"
-      position="0 0 -10">
+      color="#cc2200" opacity="0.75"
+      width="1" height="1" depth="1"
+      position="-4 0 -10">
       <a-animation attribute="rotation"
         from="0 0 0" to="0 360 0"
         dur="4000" easing="linear" repeat="indefinite"/>
     </a-box>
 
     <!--
-      Train — camera-relative, 15m ahead.
       ╔══════════════════════════════════════════════════╗
-      ║  Scale baked in from your feedback:             ║
-      ║  X=0.4 × 1.25 = 0.5  (width,  25% bigger)     ║
-      ║  Y=1.0 × 1.25 = 1.25 (height, 25% bigger)     ║
-      ║  Z=1.0 × 1.25 = 1.25 (depth,  25% bigger)     ║
-      ║                                                  ║
-      ║  Sliders still available to fine-tune further   ║
+      ║  Scale: X=0.63  Y=1.56  Z=1.56                 ║
+      ║  Position Y=1.5 raises train to mid-screen      ║
+      ║  Use sliders to fine-tune both live on device   ║
       ╚══════════════════════════════════════════════════╝
     -->
-    <a-entity id="train-wrapper" position="0 0 -15" scale="0.5 1.25 1.25">
+    <a-entity id="train-wrapper" position="0 1.5 -15" scale="0.63 1.56 1.56">
       <a-entity
         id="train-model-entity"
         gltf-model="#train-model"
@@ -380,23 +329,23 @@
       </a-entity>
       <a-animation
         attribute="position"
-        from="-20 0 -15" to="20 0 -15"
+        from="-20 1.5 -15" to="20 1.5 -15"
         dur="10000" easing="linear"
         repeat="indefinite" direction="normal">
       </a-animation>
     </a-entity>
 
     <!-- Steam puff -->
-    <a-sphere color="#c8c0b0" opacity="0" radius="0.3"
-      position="-20 2 -15" segments-height="6" segments-width="6">
+    <a-sphere color="#c8c0b0" opacity="0" radius="0.4"
+      position="-20 3.5 -15" segments-height="6" segments-width="6">
       <a-animation attribute="position"
-        from="-20 2 -15" to="20 2 -15"
+        from="-20 3.5 -15" to="20 3.5 -15"
         dur="10000" easing="linear" repeat="indefinite"/>
       <a-animation attribute="opacity"
-        from="0" to="0.5" dur="700"
+        from="0" to="0.55" dur="700"
         easing="ease-in" repeat="indefinite" direction="alternate"/>
       <a-animation attribute="radius"
-        from="0.2" to="1.0" dur="3000"
+        from="0.3" to="1.2" dur="3000"
         easing="ease-out" repeat="indefinite"/>
     </a-sphere>
 
@@ -416,63 +365,65 @@
       <div class="splash-divider"></div>
       <p class="splash-sub">A historic locomotive, returned to the streets it once ruled.</p>
       <p class="splash-instruction">
-        Rotate to <strong>landscape</strong> then tap below.
-        Point your camera straight ahead — the train appears
-        about 15 metres in front of you.
+        Tap below then point your camera straight ahead —
+        the train appears about 15 metres in front of you.
+        Hold your phone in whichever orientation feels natural.
         <br><br>
         Requires <strong>camera</strong> and <strong>location</strong> access.
       </p>
       <p class="splash-tip">
-        <strong>Full screen tip:</strong> After starting, tap the
-        <strong>⤢ Expand</strong> button (top-left) to hide Safari's
-        toolbar and get an unobstructed view. Tap again to restore.
-        <br>Or: use <strong>Share → Add to Home Screen</strong> to
-        launch with no browser chrome at all.
+        <strong>True full screen:</strong> Tap Share in Safari
+        then <strong>Add to Home Screen</strong> — launching
+        from your home screen removes all browser chrome.
       </p>
       <button id="start-btn" onclick="startExperience()">Board the Experience</button>
     </div>
   </div>
 
-  <!-- Orientation warning -->
-  <div id="orient-warn">
-    <div class="rotate-icon"></div>
-    <p>Rotate to landscape<br>for the best view</p>
-    <small>AR works best in widescreen orientation</small>
+  <!-- Add to Home Screen hint -->
+  <div id="hs-hint">
+    <strong>True full screen on iPhone:</strong><br>
+    Safari toolbar cannot be hidden by web pages.<br><br>
+    Tap <strong>Share ↑</strong> → <strong>Add to Home Screen</strong>
+    → launch from your home screen icon for zero chrome.
   </div>
 
-  <!-- Debug banner — hidden in fullscreen -->
-  <div id="debug-banner">
-    <span id="debug-text">TEST MODE · adjust scale sliders (top-right) · tap ⤢ for full screen</span>
-  </div>
-
-  <!-- Fullscreen toggle button -->
-  <button id="fs-btn" onclick="toggleFullscreen()">
-    <span id="fs-icon">⤢</span>
-    <span id="fs-label">Expand</span>
+  <!-- HUD toggle button -->
+  <button id="hud-btn" onclick="toggleHUD()">
+    <span id="hud-icon">◉</span>
+    <span id="hud-label">Hide UI</span>
   </button>
 
-  <!-- Scale controls -->
+  <!-- Scale + position controls -->
   <div id="scale-controls">
     <p class="scale-title">Model scale</p>
     <div class="scale-row">
       <span class="scale-label">X</span>
-      <input type="range" id="sx" min="0.1" max="20" step="0.1" value="0.5"
+      <input type="range" id="sx" min="0.1" max="20" step="0.05" value="0.63"
         oninput="updateScale()"/>
-      <span class="scale-val" id="sx-val">0.5</span>
+      <span class="scale-val" id="sx-val">0.63</span>
     </div>
     <div class="scale-row">
       <span class="scale-label">Y</span>
-      <input type="range" id="sy" min="0.1" max="20" step="0.1" value="1.25"
+      <input type="range" id="sy" min="0.1" max="20" step="0.05" value="1.56"
         oninput="updateScale()"/>
-      <span class="scale-val" id="sy-val">1.3</span>
+      <span class="scale-val" id="sy-val">1.56</span>
     </div>
     <div class="scale-row">
       <span class="scale-label">Z</span>
-      <input type="range" id="sz" min="0.1" max="20" step="0.1" value="1.25"
+      <input type="range" id="sz" min="0.1" max="20" step="0.05" value="1.56"
         oninput="updateScale()"/>
-      <span class="scale-val" id="sz-val">1.3</span>
+      <span class="scale-val" id="sz-val">1.56</span>
     </div>
-    <button class="scale-reset" onclick="resetScale()">Reset</button>
+    <div style="height:1px;background:rgba(200,150,12,0.2);margin:0.3rem 0;"></div>
+    <p class="scale-title">Vertical position</p>
+    <div class="scale-row">
+      <span class="scale-label">Y</span>
+      <input type="range" id="py" min="-5" max="10" step="0.1" value="1.5"
+        oninput="updatePosition()"/>
+      <span class="scale-val" id="py-val">1.5</span>
+    </div>
+    <button class="scale-reset" onclick="resetAll()">Reset</button>
   </div>
 
   <!-- HUD -->
@@ -480,20 +431,19 @@
     <div class="hud-bar">
       <div class="hud-left">
         <h2>The Ghost Train</h2>
-        <p>Test Mode · scale sliders top-right</p>
+        <p>Test Mode · adjust sliders top-right</p>
       </div>
       <div class="hud-status">
         <span><span class="dot"></span>Live AR</span><br>
-        <span id="gps-status">Test mode</span>
+        <span id="scale-readout">X=0.63 Y=1.56 Z=1.56</span>
       </div>
     </div>
   </div>
 
   <script>
-    var arStarted = false;
-    var isFullscreen = false;
+    var arStarted  = false;
+    var hudVisible = true;
 
-    // ── Start ──
     function startExperience() {
       navigator.geolocation.getCurrentPosition(
         function() { launchAR(); },
@@ -506,10 +456,8 @@
       arStarted = true;
       dismissSplash();
       document.getElementById('hud').classList.add('visible');
-      document.getElementById('debug-banner').classList.add('visible');
       document.getElementById('scale-controls').classList.add('visible');
-      document.getElementById('fs-btn').classList.add('visible');
-      checkOrientation();
+      document.getElementById('hud-btn').classList.add('visible');
     }
 
     function dismissSplash() {
@@ -518,76 +466,62 @@
       setTimeout(function() { s.classList.add('gone'); }, 950);
     }
 
-    // ── Fullscreen toggle ──
-    // On iOS Safari the Fullscreen API is not available,
-    // so we use a CSS trick: scroll the page so the URL
-    // bar collapses, then lock body scroll to keep it hidden.
-    // We also toggle the body class to hide/show HUD & controls.
-    function toggleFullscreen() {
-      isFullscreen = !isFullscreen;
-      var btn   = document.getElementById('fs-btn');
-      var label = document.getElementById('fs-label');
-      var icon  = document.getElementById('fs-icon');
+    // ── HUD toggle ──
+    function toggleHUD() {
+      hudVisible = !hudVisible;
+      var label = document.getElementById('hud-label');
+      var icon  = document.getElementById('hud-icon');
+      var hint  = document.getElementById('hs-hint');
 
-      if (isFullscreen) {
-        document.body.classList.add('is-fullscreen');
-        label.textContent = 'Restore';
-        icon.textContent  = '⤡';
-
-        // iOS Safari fullscreen trick:
-        // Request native fullscreen if available (works on some iOS versions)
-        var el = document.documentElement;
-        if (el.requestFullscreen) {
-          el.requestFullscreen().catch(function(){});
-        } else if (el.webkitRequestFullscreen) {
-          el.webkitRequestFullscreen();
-        }
-
-        // Fallback: scroll past the address bar
-        window.scrollTo(0, 1);
-
+      if (hudVisible) {
+        document.body.classList.remove('hud-hidden');
+        label.textContent = 'Hide UI';
+        icon.textContent  = '◉';
+        hint.classList.remove('show');
       } else {
-        document.body.classList.remove('is-fullscreen');
-        label.textContent = 'Expand';
-        icon.textContent  = '⤢';
-
-        if (document.exitFullscreen) {
-          document.exitFullscreen().catch(function(){});
-        } else if (document.webkitExitFullscreen) {
-          document.webkitExitFullscreen();
-        }
+        document.body.classList.add('hud-hidden');
+        label.textContent = 'Show UI';
+        icon.textContent  = '○';
+        hint.classList.add('show');
+        setTimeout(function() {
+          hint.classList.remove('show');
+        }, 5000);
       }
     }
 
-    // Listen for native fullscreen change events
-    // (so button state stays in sync if user exits via swipe)
-    document.addEventListener('fullscreenchange', onFSChange);
-    document.addEventListener('webkitfullscreenchange', onFSChange);
-
-    function onFSChange() {
-      var inFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
-      if (!inFS && isFullscreen) {
-        // User exited fullscreen externally — sync state
-        isFullscreen = false;
-        document.body.classList.remove('is-fullscreen');
-        document.getElementById('fs-label').textContent = 'Expand';
-        document.getElementById('fs-icon').textContent  = '⤢';
-      }
+    // ── Scale ──
+    function updateScale() {
+      var sx = parseFloat(document.getElementById('sx').value);
+      var sy = parseFloat(document.getElementById('sy').value);
+      var sz = parseFloat(document.getElementById('sz').value);
+      document.getElementById('sx-val').textContent = sx.toFixed(2);
+      document.getElementById('sy-val').textContent = sy.toFixed(2);
+      document.getElementById('sz-val').textContent = sz.toFixed(2);
+      var w = document.getElementById('train-wrapper');
+      if (w) w.setAttribute('scale', sx + ' ' + sy + ' ' + sz);
+      document.getElementById('scale-readout').textContent =
+        'X=' + sx.toFixed(2) + ' Y=' + sy.toFixed(2) + ' Z=' + sz.toFixed(2);
     }
 
-    // ── Orientation ──
-    function checkOrientation() {
-      if (!arStarted) return;
-      var warn = document.getElementById('orient-warn');
-      if (window.innerWidth < window.innerHeight) {
-        warn.classList.add('show');
-      } else {
-        warn.classList.remove('show');
-      }
+    // ── Vertical position ──
+    function updatePosition() {
+      var py = parseFloat(document.getElementById('py').value);
+      document.getElementById('py-val').textContent = py.toFixed(1);
+      var w = document.getElementById('train-wrapper');
+      if (w) w.setAttribute('position', '0 ' + py + ' -15');
     }
 
+    function resetAll() {
+      document.getElementById('sx').value = 0.63;
+      document.getElementById('sy').value = 1.56;
+      document.getElementById('sz').value = 1.56;
+      document.getElementById('py').value = 1.5;
+      updateScale();
+      updatePosition();
+    }
+
+    // ── Resize handler — recalculates canvas on rotation ──
     function onResize() {
-      checkOrientation();
       var scene = document.getElementById('ar-scene');
       if (scene && scene.renderer) {
         scene.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -598,35 +532,6 @@
     window.addEventListener('orientationchange', function() {
       setTimeout(onResize, 300);
     });
-
-    // ── Scale sliders ──
-    function updateScale() {
-      var sx = parseFloat(document.getElementById('sx').value);
-      var sy = parseFloat(document.getElementById('sy').value);
-      var sz = parseFloat(document.getElementById('sz').value);
-
-      document.getElementById('sx-val').textContent = sx.toFixed(1);
-      document.getElementById('sy-val').textContent = sy.toFixed(1);
-      document.getElementById('sz-val').textContent = sz.toFixed(1);
-
-      var wrapper = document.getElementById('train-wrapper');
-      if (wrapper) {
-        wrapper.setAttribute('scale', sx + ' ' + sy + ' ' + sz);
-      }
-
-      document.getElementById('debug-text').textContent =
-        'Scale X=' + sx.toFixed(1) +
-        ' Y=' + sy.toFixed(1) +
-        ' Z=' + sz.toFixed(1) +
-        ' · note values for GPS version';
-    }
-
-    function resetScale() {
-      document.getElementById('sx').value = 0.5;
-      document.getElementById('sy').value = 1.25;
-      document.getElementById('sz').value = 1.25;
-      updateScale();
-    }
   </script>
 
 </body>
